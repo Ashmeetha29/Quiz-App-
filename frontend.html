@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quiz App</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: linear-gradient(to right, #8e2de2, #4a00e0);
+      color: #fff;
+    }
+    .container {
+      background: #fff;
+      color: #000;
+      padding: 2rem;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 500px;
+      text-align: center;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+    }
+    .hidden {
+      display: none;
+    }
+    button {
+      background: #4a00e0;
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      margin: 1rem 0;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #8e2de2;
+    }
+    .question {
+      margin: 1rem 0;
+    }
+    .option {
+      display: block;
+      margin: 0.5rem 0;
+      padding: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .option:hover {
+      background: #f0f0f0;
+    }
+    .selected {
+      background-color: #d1c4e9;
+      border-color: #673ab7;
+    }
+    .timer {
+      font-size: 1.2rem;
+      margin: 1rem 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="start-screen">
+      <h1>Welcome to the Quiz!</h1>
+      <button onclick="startQuiz()">Start Quiz</button>
+    </div>
+
+    <div id="quiz-screen" class="hidden">
+      <div class="timer" id="timer"></div>
+      <div id="question-container"></div>
+      <button onclick="nextQuestion()">Next</button>
+    </div>
+
+    <div id="result-screen" class="hidden">
+      <h2>Your Score: <span id="score"></span></h2>
+      <h3>High Score: <span id="high-score"></span></h3>
+      <button onclick="startQuiz()">Play Again</button>
+    </div>
+  </div>
+
+  <script>
+    const questions = [
+      {
+        question: "What is the capital of France?",
+        options: ["Paris", "London", "Rome", "Berlin"],
+        answer: 0
+      },
+      {
+        question: "Which is the smallest prime number?",
+        options: ["1", "2", "3", "5"],
+        answer: 1
+      },
+      {
+        question: "HTML stands for?",
+        options: ["Hyperlinks and Text Markup Language", "Hyper Text Markup Language", "Home Tool Markup Language", "Hyperlinking Text Marking Language"],
+        answer: 1
+      }
+    ];
+
+    let currentQuestion = 0;
+    let selectedOption = null;
+    let score = 0;
+    let timer;
+    let timeLeft = 15;
+
+    function startQuiz() {
+      document.getElementById("start-screen").classList.add("hidden");
+      document.getElementById("quiz-screen").classList.remove("hidden");
+      document.getElementById("result-screen").classList.add("hidden");
+      currentQuestion = 0;
+      score = 0;
+      timeLeft = 15;
+      startTimer();
+      showQuestion();
+    }
+
+    function showQuestion() {
+      const q = questions[currentQuestion];
+      const container = document.getElementById("question-container");
+      container.innerHTML = `
+        <div class="question"><strong>Q${currentQuestion + 1}:</strong> ${q.question}</div>
+        ${q.options
+          .map(
+            (opt, i) => `<div class="option" onclick="selectOption(this, ${i})">${opt}</div>`
+          )
+          .join("")}
+      `;
+    }
+
+    function selectOption(el, index) {
+      const options = document.querySelectorAll(".option");
+      options.forEach(opt => opt.classList.remove("selected"));
+      el.classList.add("selected");
+      selectedOption = index;
+    }
+
+    function nextQuestion() {
+      if (selectedOption === null) return;
+      if (selectedOption === questions[currentQuestion].answer) {
+        score++;
+      }
+      selectedOption = null;
+      currentQuestion++;
+
+      if (currentQuestion >= questions.length) {
+        endQuiz();
+      } else {
+        timeLeft = 15;
+        showQuestion();
+      }
+    }
+
+    function startTimer() {
+      clearInterval(timer);
+      timer = setInterval(() => {
+        document.getElementById("timer").innerText = `Time Left: ${timeLeft}s`;
+        timeLeft--;
+        if (timeLeft < 0) {
+          clearInterval(timer);
+          endQuiz();
+        }
+      }, 1000);
+    }
+
+    function endQuiz() {
+      clearInterval(timer);
+      document.getElementById("quiz-screen").classList.add("hidden");
+      document.getElementById("result-screen").classList.remove("hidden");
+      document.getElementById("score").innerText = `${score} / ${questions.length}`;
+
+      const highScore = localStorage.getItem("highScore") || 0;
+      if (score > highScore) {
+        localStorage.setItem("highScore", score);
+      }
+      document.getElementById("high-score").innerText = localStorage.getItem("highScore");
+    }
+  </script>
+</body>
+</html>
